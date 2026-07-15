@@ -1,31 +1,8 @@
+import research_assistant.layout_patch
 import pymupdf4llm
 import json
 import re
 from pathlib import Path
-
-def save_json(dict_data, filename):
-    with open(filename, "w") as f:
-        f.write(dict_data)
-
-def parse():
-    # Takes a PDF, makes it a markdown
-    filename = "data/llm-as-a-verifier:_a_general-purpose_verification_framework"
-    md = pymupdf4llm.to_markdown(f"{filename}.pdf")
-    Path(f"{filename}.md").write_bytes(md.encode())
-
-
-def remove_picture_blocks(markdown: str) -> str:
-    pattern = (
-        r'<!--\s*Start of picture text\s*-->.*?'
-        r'<!--\s*End of picture text\s*-->'
-    )
-
-    return re.sub(pattern, "", markdown, flags=re.DOTALL | re.IGNORECASE)
-
-def remove_page_numbers(markdown: str) -> str:
-    pattern = r'\n\s*\d+\s*\n'
-    return re.sub(pattern, '\n', markdown)
-
 
 from collections import Counter
 
@@ -66,19 +43,6 @@ def remove_repeated_lines(text, repeated):
 
     return "\n".join(cleaned)
 
-def remove_figure_text(markdown):
-    return re.sub(
-        r"\n\s*\**(?:Figure|Fig\.?)\**\s*\d+[:.]?.*?(\n\n)",
-        " ",
-        markdown,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
-
-
-def remove_empty_lines(markdown):
-    return re.sub(r'(?:\r?\n[ \t]*){2,}', '\n\n', markdown) # It might have tabs or whitespaces and not only empty newlines
-
-    
 def split_sections(data):
     pattern = r'^(#{1,6}\s+.+)$'
     matches = list(re.finditer(pattern, data, flags=re.MULTILINE))
@@ -102,28 +66,128 @@ def split_sections(data):
 
     return sections
 
+from enum import Enum
 
-def make_stuff():
-    paper = "data/llm-as-a-verifier:_a_general-purpose_verification_framework.md"
+class State(Enum):
+    NORMAL = 0
+    TABLE = 1
+    TABLE_CAPTION = 2
+    FIGURE_CAPTION = 3
+    PICTURE = 4
 
-    with open(paper, "r") as f:
-        data = f.read()
+class MarkdownCleaner:
+    def __init__(self):
+        self.page_number_re = re.compile(r"^\d+$")
+        self.table_header_re = re.compile(r"^\|.*\|$")
+        self.table_separator_re = re.compile(r"^\|[-:| ]+\|$")
+        self.table_caption_re = re.compile(r"^(?:table)\s+(?:\d+|[IVXLCDM]+)[.:]?", re.IGNORECASE)
+        self.figure_caption_re = re.compile(r"^\**(?:Figure|Fig\.?)\**\s*\d+[.:]?", re.IGNORECASE)
+        self.figure_text_start_re = re.compile(r"<!-+\s*Start of picture text\s*-+>.*?", re.DOTALL | re.IGNORECASE)
+        self.figure_text_end_re = re.compile(r"<!-+\s*End of picture text\s*-+>.*?", re.DOTALL | re.IGNORECASE)
+        self.state = State.NORMAL
 
-    data = remove_picture_blocks(data)
-    data = remove_page_numbers(data)
+    def emit(self, output, line):
+        if output and output[-1].endswith(" "):
+            output[-1] += line.lstrip()
+        else:
+            output.append(line)
 
-    repeated = find_repeated_lines(data)
-    data = remove_repeated_lines(data, repeated)
+    def clean(self, markdown:str) ->  str:
+        output = []
 
-    data = remove_figure_text(data)
-    data = remove_empty_lines(data)
+        previous_blank = False
 
-    sections = split_sections(data)
+        inside_picture = False
+        inside_table = False
+        inside_table_caption = False
+        inside_figure_caption = False
+
+        for line in markdown.splitlines():
+
+            stripped = line.strip()
+
+            # Picture blocks
+            if self.figure_text_start_re.search(stripped):
+                inside_picture = True
+                continue
+
+            if inside_picture:
+                print(f"Inside picture {stripped}")
+                if self.figure_text_end_re.search(stripped):
+                    inside_picture = False
+                print(f"Flag {inside_picture}")
+                continue
+
+            
+            # Page numbers
+            if self.page_number_re.fullmatch(stripped):
+                continue
+
+            # Markdown tables
+            if self.table_header_re.match(stripped):
+                inside_table = True
+
+                # If sentence is interrupted, join the next ommited line
+                if output and output[-1]:
+                    output[-1] = output[-1].rstrip() + " "
+                continue
+
+            if inside_table:
+                if not stripped.startswith("|"):
+                    inside_table = False
+                else:
+                    continue
+
+            # Table captions
+            if self.table_caption_re.match(stripped):
+                inside_table_caption = True
+
+                if output and output[-1]:
+                    output[-1] = output[-1].rstrip() + " "
+                continue
+
+            if inside_table_caption:
+                # Caption ended?
+                if (stripped == "" or stripped != stripped.upper()):
+                    inside_table_caption = False
+                else:
+                    continue
+
+            # Figure captions
+            if self.figure_caption_re.match(stripped):
+                inside_figure_caption = True
+
+                if output and output[-1]:
+                    output[-1] = output[-1].rstrip() + " "
+                continue
+
+            if inside_figure_caption:
+                if stripped == "":
+                    inside_figure_caption = False
+                continue
+
+            # Blank lines
+            if stripped == "":
+                if previous_blank:
+                    continue
+
+                previous_blank = True
+                output.append("")
+                continue
+
+            previous_blank = False
+
+            # Keep normal text
+            output.append(line)
+
+        return "\n".join(output)
     
+def trying():
+    filename = "data/2606.24523v1"
+    md = pymupdf4llm.to_markdown(f"{filename}.pdf", header=False, footer=False, table_strategy=None, ignore_images=True)
 
-    print(sections.keys())
-    print("****")
-    print(sections[list(sections.keys())[1]])
-    return sections
+    cleaner = MarkdownCleaner()
+    data = cleaner.clean(md)
+    Path(f"{filename}_parsed_class.md").write_bytes(data.encode())
 
-make_stuff()
+trying()

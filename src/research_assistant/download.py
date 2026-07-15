@@ -14,7 +14,7 @@ def format_name(short_id: str) -> str:
 
 def download_arxiv(output_dir: Path, max_results:int=1000) -> int:
     '''
-    Download papers from ArXiv. 2000 paper by default
+    Download papers from ArXiv. 1000 paper by default
     '''
 
     # Make sure the destination directory exists or create it
@@ -25,7 +25,7 @@ def download_arxiv(output_dir: Path, max_results:int=1000) -> int:
 
     # Search files on ArXiv
     search = arxiv.Search(
-        query="(cat:cs.AI OR cat:cs.CL) AND LLM",
+        query="(cat:cs.AI OR cat:cs.CL) AND LLM AND NOT Poster",
         max_results=max_results,
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
@@ -44,4 +44,3 @@ def download_arxiv(output_dir: Path, max_results:int=1000) -> int:
     
     print(f"Downloaded {successes} papers.")
     return successes
-            
