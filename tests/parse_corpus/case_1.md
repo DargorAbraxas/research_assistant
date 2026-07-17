@@ -1,0 +1,7 @@
+# **Poster: Exploring the Limits of Audio-Based Detection of Turkish Phone Call Scams** 
+
+Arda Eren<sup>_∗_</sup> , Micheal Cheung<sup>_∗_</sup> , Youqian Zhang<sup>_∗_</sup> , Grace Ngai<sup>_∗_</sup> and Eugene Yujun Fu<sup>_†_</sup> _∗The Hong Kong Polytechnic University, Hong Kong Email: arda01.eren@connect.polyu.hk_ 
+
+> _†The Education University of Hong Kong, Hong Kong_ 
+
+**_Abstract_ —Scam phone calls exploit vulnerable communities worldwide, yet research on detection has focused almost exclusively on English and other high-resource languages. In low-resource settings such as Turkish, detection is especially difficult, as annotated data is scarce and technological defenses remain limited. This research investigates how large language models (LLMs) can support scam detection in Turkish by introducing the first public multi-modal dataset of 100 aligned audio-transcript pairs of scam and benign conversations. We evaluate seven LLMs spanning three model families: Gemini 2.5 (Flash, Flash-Lite, Pro), GPT-4o, and Qwen (Max, Plus, Turbo), under three input conditions: raw audio, automatic speech-totext transcripts, and transcripts refined by a native speaker. Our results suggest that transcript-based inputs consistently outperform direct audio processing, while human-corrected and uncorrected transcripts perform comparably. By centering a low-resource language and real world threat, this work highlights the urgent need for culturally and linguistically inclusive AI safety research and more robust multi-modal systems for fraud prevention.** 

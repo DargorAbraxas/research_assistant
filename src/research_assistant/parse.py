@@ -40,12 +40,34 @@ class MarkdownCleaner:
     def __init__(self):
         self.page_number_re = re.compile(r"^\d+$")
         self.table_header_re = re.compile(r"^\|.*\|$")
-        self.table_separator_re = re.compile(r"^\|[-:| ]+\|$")
-        self.table_caption_re = re.compile(r"^(?:table)\s+(?:\d+|[IVXLCDM]+)[.:]?", re.IGNORECASE)
-        self.figure_caption_re = re.compile(r"^\**(?:Figure|Fig\.?)\**\s*\d+[.:]?", re.IGNORECASE)
+        self.table_caption_re = re.compile(r"^\**(?:table)\s+(?:\d+|[IVXLCDM]+)[.:]?", re.IGNORECASE)
+        self.figure_caption_re = re.compile(r"^\**(?:Figure|Fig\.?)\s*\d+\**[.:]+", re.IGNORECASE)
         self.figure_text_start_re = re.compile(r"<!-+\s*Start of picture text\s*-+>.*?", re.DOTALL | re.IGNORECASE)
         self.figure_text_end_re = re.compile(r"<!-+\s*End of picture text\s*-+>.*?", re.DOTALL | re.IGNORECASE)
+        self.ending_superscript = re.compile(r"<sup>\d+<\/sup>\s*$")
+        self.keywords_re = re.compile(r"^\**_*(?:Keywords)[.:]*", re.DOTALL | re.IGNORECASE)
 
+    def is_metadata_line(self, line: str) -> bool:
+        line = line.strip()
+
+        # Markdown blockquote
+        if line.startswith(">"):
+            return True
+        
+        # Keywords line
+        if self.keywords_re.match(line):
+            return True
+
+        # Typical affiliation markers
+        if re.match(r"^_?[†‡0-9]+", line):
+            return True
+
+        # Email addresses
+        if "@" in line:
+            return True
+
+        return False
+    
     def emit(self, output: list[str], line: str, join_with_previous: bool) -> bool:
         """
         Append a line while automatically joining text that
@@ -53,12 +75,10 @@ class MarkdownCleaner:
         """
         
         line = line.lstrip()
-        if line.endswith(" ") and not line.startswith("#"):
-            join_with_previous = True
   
         if join_with_previous and output:
             if output[-1] == "":
-                output[-1] = line    
+                output[-1] = line
                 return False
 
             output[-1] = output[-1].rstrip() + " " + line
@@ -73,6 +93,17 @@ class MarkdownCleaner:
             return False
 
         last = output[-1].rstrip()
+
+        # Don't join after blockquotes (often affiliations/quotes)
+        if last.startswith(">") or self.ending_superscript.search(last):
+            return False
+        
+        if re.search(r"\.?\*+\s*$", last):
+            return False
+
+        # Don't join after fully italic metadata lines
+        if self.is_metadata_line(last):
+            return False
 
         if not last:
             return False
@@ -105,7 +136,6 @@ class MarkdownCleaner:
         for line in markdown.splitlines():
 
             stripped = line.strip()
-
             # ================
             # NORMAL STATE
             # ================
@@ -127,7 +157,6 @@ class MarkdownCleaner:
                 # Markdown tables
                 if self.table_header_re.match(stripped):
                     state = State.TABLE
-                    join_with_previous = self.should_join_next_line(output)
                     continue
             
                 # Table captions
@@ -139,7 +168,10 @@ class MarkdownCleaner:
                 # Figure captions
                 if self.figure_caption_re.match(stripped):
                     state = State.FIGURE_CAPTION
-                    join_with_previous = self.should_join_next_line(output)
+                    continue
+
+                # Do not add email metadata
+                if stripped.startswith(">"):
                     continue
 
                 # Blank lines
@@ -148,7 +180,9 @@ class MarkdownCleaner:
                         continue
 
                     previous_blank = True
-                    output.append("")
+                    join_with_previous = self.should_join_next_line(output)
+                    if not join_with_previous:
+                        output.append("")
                     continue
 
                 previous_blank = False
@@ -195,13 +229,11 @@ class MarkdownCleaner:
         return "\n".join(output)
     
 def trying():
-    # filename = "data/2606.24523v1"
-    filename = "data/2606.25445v1"
+    filename = "data/2607.00334v1"
+    
     md = pymupdf4llm.to_markdown(f"{filename}.pdf", header=False, footer=False, table_strategy=None, ignore_images=True)
     Path(f"{filename}_base.md").write_bytes(md.encode())
 
     cleaner = MarkdownCleaner()
     data = cleaner.clean(md)
     Path(f"{filename}_parsed_class.md").write_bytes(data.encode())
-
-trying()
