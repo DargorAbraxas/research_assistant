@@ -1,0 +1,13 @@
+{
+    "arvix_id": "http://arxiv.org/abs/2607.15957v1",
+    "title": "From Plausible to Actionable: A Position on LLM Self-Explanations",
+    "authors": [
+        "Elize Herrewijnen",
+        "Benedetta Muscato",
+        "Gizem Gezici",
+        "Fosca Giannotti"
+    ],
+    "published": "2026-07-17T13:44:19+00:00",
+    "abstract": "Large Language Models (LLMs) can generate natural language explanations that rationalize their own decisions, a phenomenon commonly referred to as self-explanations.Such explanations have emerged as a promising direction for explainable artificial intelligence (XAI), particularly for interpreting LLM behavior.However, while self-explanations often appear plausible, whether they faithfully reflect a model's underlying reasoning process remains an open question. In this opinion paper, we argue that self-explanations can be highly plausible, questionably faithful, and yet highly actionable. From a traditional XAI perspective, we identify the limitations of standard evaluation protocols for LLM-generated self-explanations and propose practical guidelines for assessing their plausibility and faithfulness. Moreover, we argue that evaluation should extend beyond these criteria to actionability, highlighting applications of LLM rationalization capabilities that support informed decision-making and appropriate action across diverse stakeholders.",
+    "some other field": "with text just for testing"
+}

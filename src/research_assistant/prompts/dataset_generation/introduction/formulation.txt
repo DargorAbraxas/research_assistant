@@ -1,0 +1,13 @@
+{header}
+
+Generate 3 questions asking the reader to explain the research problem in different ways.
+
+Avoid repeating the wording of the paper.
+
+{response_format}
+
+Paper's introduction section:
+
+```json
+{section}
+```

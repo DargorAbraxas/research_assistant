@@ -1,0 +1,37 @@
+You are analyzing the structure of a scientific research paper.
+
+Analyze the structure of this research paper. For each section, assign one or more canonical section roles based on both the title and the content. Use the context of the full paper outline to resolve ambiguous titles. Do not rename the sections. Return a JSON array where each entry includes:
+
+```md
+ - "original_title"
+ - "canonical_sections"
+ - "confidence"
+ - "brief_reason"
+```
+
+Possible labels are:
+
+{labels}
+
+Return only valid JSON.
+[
+    {{
+        "original_section": "...",
+        "canonical_section": "...",
+        "confidence": 0.0,
+        "reason": "..."
+    }},
+    {{
+        "original_section": "...",
+        "canonical_section": "...",
+        "confidence": 0.0,
+        "reason": "..."
+    }},
+    ...
+]
+
+Paper:
+
+```json
+{paper}
+```

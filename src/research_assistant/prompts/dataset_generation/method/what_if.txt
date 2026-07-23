@@ -1,0 +1,21 @@
+{header}
+
+Generate 5 hypothetical questions that modify one aspect of the described work.
+
+Question examples (before providing answers):
+
+- What if the dataset were twice as large?
+- What if the attention module were removed?
+- What if noisy sensors were used?
+
+Answer using only the provided text.
+
+If you are not sure about the answer, you can try and suppose to the best of your knowledge, claryfing in the answer that it does not come from the text.
+
+{response_format}
+
+Paper's method section:
+
+```json
+{section}
+```

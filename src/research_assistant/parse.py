@@ -1,32 +1,7 @@
 import research_assistant.layout_patch
 import pymupdf4llm
-import json
 import re
 from pathlib import Path
-
-def split_sections(data):
-    pattern = r'^(#{1,6}\s+.+)$'
-    matches = list(re.finditer(pattern, data, flags=re.MULTILINE))
-    sections = {}
-
-    for i, match in enumerate(matches):
-        title = match.group(1).lstrip("#").strip()  
-
-        # Stop if "Appendix" is in the title. Discard everything afterwards
-        if "Appendix" in title:
-            break
-
-        # Do not add these sections
-        if any(non_important in title for non_important in ["Acknowledgments", "References", "Bibliography"]):
-            continue
-
-        start = match.end()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(data)
-        content = data[start:end].strip()
-        sections[title] = content
-
-    return sections
-
 from enum import Enum, auto
 
 class State(Enum):
@@ -41,11 +16,18 @@ class MarkdownCleaner:
         self.page_number_re = re.compile(r"^\d+$")
         self.table_header_re = re.compile(r"^\|.*\|$")
         self.table_caption_re = re.compile(r"^\**(?:table)\s+(?:\d+|[IVXLCDM]+)[.:]?", re.IGNORECASE)
-        self.figure_caption_re = re.compile(r"^\**(?:Figure|Fig\.?)\s*\d+\**[.:]+", re.IGNORECASE)
+        self.figure_caption_re = re.compile(r"^\**(?:Figure|Fig\.?)\s*\d+\**[.:]+", re.IGNORECASE) ##
         self.figure_text_start_re = re.compile(r"<!-+\s*Start of picture text\s*-+>.*?", re.DOTALL | re.IGNORECASE)
         self.figure_text_end_re = re.compile(r"<!-+\s*End of picture text\s*-+>.*?", re.DOTALL | re.IGNORECASE)
         self.ending_superscript = re.compile(r"<sup>\d+<\/sup>\s*$")
         self.keywords_re = re.compile(r"^\**_*(?:Keywords)[.:]*", re.DOTALL | re.IGNORECASE)
+        self.paragraph_figure_caption_re = re.compile(r"\*+(?:Figure|Fig\.?)\s*\d+.*$", re.DOTALL)
+
+        break_sections = ["Appendix", "Acknowledgement", "Acknowledgment", "References", "Bibliography"]
+        self.break_parsing_re = re.compile(rf"^#+\s+\**(?:{'|'.join(break_sections)})", re.IGNORECASE)
+
+    def break_parsing(self, line: str) -> bool:
+        pass
 
     def is_metadata_line(self, line: str) -> bool:
         line = line.strip()
@@ -75,6 +57,13 @@ class MarkdownCleaner:
         """
         
         line = line.lstrip()
+
+        if line.startswith("#"):
+            if join_with_previous:
+                line = "\n" + line
+
+            output.append(line)
+            return False    
   
         if join_with_previous and output:
             if output[-1] == "":
@@ -109,7 +98,7 @@ class MarkdownCleaner:
             return False
 
         # Finished a sentence
-        if last.endswith((".", "!", "?", ":", ";")):
+        if last.endswith((".", "!", "?", ":")):
             return False
 
         # Previous is heading
@@ -136,6 +125,10 @@ class MarkdownCleaner:
         for line in markdown.splitlines():
 
             stripped = line.strip()
+
+            # Stop if breaking header is reached
+            if self.break_parsing_re.match(stripped):
+                break
             # ================
             # NORMAL STATE
             # ================
@@ -174,6 +167,9 @@ class MarkdownCleaner:
                 if stripped.startswith(">"):
                     continue
 
+                # Incorrect figure caption in text
+                line = self.paragraph_figure_caption_re.sub("", line)
+
                 # Blank lines
                 if stripped == "":
                     if previous_blank or join_with_previous:
@@ -205,7 +201,7 @@ class MarkdownCleaner:
 
                     # Add the line table finished
                     if stripped:
-                        join_with_previous = self.emit(output, line, join_with_previous)
+                        join_with_previous = self.emit(output, stripped, join_with_previous)
 
             # ================
             # IN TABLE CAPS
@@ -227,13 +223,11 @@ class MarkdownCleaner:
                     state = State.NORMAL
 
         return "\n".join(output)
-    
-def trying():
-    filename = "data/2607.00334v1"
-    
-    md = pymupdf4llm.to_markdown(f"{filename}.pdf", header=False, footer=False, table_strategy=None, ignore_images=True)
-    Path(f"{filename}_base.md").write_bytes(md.encode())
 
-    cleaner = MarkdownCleaner()
-    data = cleaner.clean(md)
-    Path(f"{filename}_parsed_class.md").write_bytes(data.encode())
+def parse_data(download_path: Path):
+    for doc in download_path.glob("**/*.pdf"):
+        markdown = pymupdf4llm.to_markdown(doc, header=False, footer=False, table_strategy=None, ignore_images=True)
+        
+        cleaner = MarkdownCleaner()
+        clean_markdown = cleaner.clean(markdown)
+        Path(doc.parent / "paper.md").write_bytes(clean_markdown.encode())

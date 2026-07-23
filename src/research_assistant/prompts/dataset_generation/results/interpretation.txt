@@ -1,0 +1,13 @@
+{header}
+
+Generate 5 questions asking what conclusions can be drawn from the reported results.
+
+Avoid asking for exact numerical values and focus on the ideas.
+
+{response_format}
+
+Paper results:
+
+```json
+{section}
+```

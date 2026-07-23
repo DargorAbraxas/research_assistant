@@ -1,0 +1,19 @@
+{header}
+
+Generate 5 questions that test understanding of why this research was conducted.
+
+The questions should not ask for direct quotes from the text.
+
+Focus on:
+- the practical problem
+- the research gap
+- why existing approaches are insufficient
+- expected impact
+
+{response_format}
+
+Paper's introduction section:
+
+```json
+{section}
+```

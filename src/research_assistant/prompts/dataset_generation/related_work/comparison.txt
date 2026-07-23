@@ -1,0 +1,15 @@
+{header}
+
+Generate 5 questions comparing this work to previous methods.
+
+Avoid asking for citation names.
+
+Focus on methodological differences and how this approach addresses previous shortcomings.
+
+{response_format}
+
+Paper's related work section:
+
+```json
+{section}
+```

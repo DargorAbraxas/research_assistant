@@ -1,0 +1,11 @@
+{header}
+
+Generate 5 questions asking about the reasons of the proposed method. Focus on reasons about why the method was chosen.
+
+{response_format}
+
+Paper's method section:
+
+```json
+{section}
+```

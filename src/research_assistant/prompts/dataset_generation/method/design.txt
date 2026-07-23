@@ -1,0 +1,11 @@
+{header}
+
+Generate 5 questions about why the authors chose each major design decision.
+
+{response_format}
+
+Paper's method section:
+
+```json
+{section}
+```

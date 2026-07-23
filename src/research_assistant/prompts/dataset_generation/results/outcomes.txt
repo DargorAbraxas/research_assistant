@@ -1,0 +1,11 @@
+{header}
+
+Generate five questions asking which result appears more surprising and why.
+
+{response_format}
+
+Paper results:
+
+```json
+{section}
+```

@@ -37,6 +37,7 @@ def test_remove_picture_blocks(text, expected):
         ("case_1.md", "case_1.md"),
         ("case_2.md", "case_2.md"),
         ("case_3.md", "case_3.md"),
+        ("figure_in_text.md", "figure_in_text.md"),
         ("remove_figure.md", "remove_figure.md"),
         ("keep_figure_paragraph.md", "keep_figure_paragraph.md"),
         ("remove_page_number.md", "remove_page_number.md"),

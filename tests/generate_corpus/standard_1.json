@@ -1,0 +1,53 @@
+{
+    "sections": [
+        {
+            "original_section": "**1 Introduction**",
+            "canonical_sections": [
+                "introduction"
+            ],
+            "confidence": 0.95,
+            "reason": "Title explicitly states 'Introduction' and content sets the context, defines terms (plausibility/faithfulness), and outlines contributions."
+        },
+        {
+            "original_section": "**2 Self-Explanations: Highly Plausible, Questionably Faithful**",
+            "canonical_sections": [
+                "related_work"
+            ],
+            "confidence": 0.9,
+            "reason": "Section analyzes existing XAI evaluation protocols and their limitations regarding LLMs by reviewing prior work (e.g., Doshi-Velez & Kim), fitting the related work role in an opinion paper."
+        },
+        {
+            "original_section": "**Some other section**",
+            "canonical_sections": [
+                "method",
+                "related_work"
+            ],
+            "confidence": 0.9,
+            "reason": "Just checking"
+        },
+        {
+            "original_section": "**5 A Method section**",
+            "canonical_sections": [
+                "method"
+            ],
+            "confidence": 0.9,
+            "reason": "Another method"
+        },
+        {
+            "original_section": "**3 Towards Actionable Self-Explanations**",
+            "canonical_sections": [
+                "future_work"
+            ],
+            "confidence": 0.9,
+            "reason": "Section outlines a research agenda and proposes applications for self-explanations (communicative interfaces), aligning with the 'research agenda' mentioned in Introduction."
+        },
+        {
+            "original_section": "**4 Conclusion**",
+            "canonical_sections": [
+                "conclusion"
+            ],
+            "confidence": 0.95,
+            "reason": "Title explicitly states 'Conclusion' and content summarizes arguments regarding limitations of evaluation frameworks and the value of actionability."
+        }
+    ]
+}

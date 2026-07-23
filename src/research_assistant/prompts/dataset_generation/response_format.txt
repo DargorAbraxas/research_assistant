@@ -1,0 +1,24 @@
+For each question:
+- formulate a question
+- provide the answer
+- provide a confidence value of your answer
+
+Return only valid JSON, in the format:
+
+```json
+{{
+    "responses": [
+        {{
+            "question": "...",
+            "answer": "...",
+            "confidence": "0.0"
+        }},
+        {{
+            "question": "...",
+            "answer": "...",
+            "confidence": "0.0"
+        }},
+        ...
+    ]
+}}
+```

@@ -1,0 +1,13 @@
+{header}
+
+A paper might have experiments performed to validate the authors' ideas. In case this paper has experiments, generate 5 questions about the purpose of the experiment.
+
+If the section does not include experiments, generate questions about how another author could make an experiment to support the ideas.
+
+{response_format}
+
+Paper's method section:
+
+```json
+{section}
+```

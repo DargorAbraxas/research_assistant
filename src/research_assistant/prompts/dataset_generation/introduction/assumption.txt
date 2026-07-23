@@ -1,0 +1,11 @@
+{header}
+
+Generate 3 questions about the main claims made in the introduction.
+
+{response_format}
+
+Paper's introduction section:
+
+```json
+{section}
+```

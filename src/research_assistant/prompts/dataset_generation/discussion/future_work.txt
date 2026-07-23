@@ -1,0 +1,13 @@
+{header}
+
+Generate 5 questions asking what future work could derive from this study.
+
+If there are no concrete ideas in the text, you can try and propose new directions as long as you show in the answer that it is a supposition.
+
+{response_format}
+
+Paper's discussion section:
+
+```json
+{section}
+```

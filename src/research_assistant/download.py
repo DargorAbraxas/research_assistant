@@ -3,18 +3,19 @@ import json
 from arxiv import Result
 from tqdm import tqdm
 from pathlib import Path
+from shutil import rmtree
 from urllib import error
 from urllib.request import urlretrieve
 
 def format_name(short_id: str) -> str:
     '''
-    Format the ID: remove slashes and move all to lower to keep it standard
+    Format the ID: remove slashes to avoid issues creating directories
     '''
     short_id = short_id.replace("/", "_")
     short_id = short_id.lower()
     return short_id
 
-def save_metadata(output_dir: Path, short_id: str, paper: Result):
+def save_metadata(paper_dir: Path, paper: Result):
     metadata = {
         "arvix_id": paper.entry_id,
         "title": paper.title,
@@ -23,9 +24,7 @@ def save_metadata(output_dir: Path, short_id: str, paper: Result):
         "published": paper.published.isoformat()
     }
 
-    print(metadata)
-
-    with open(output_dir / f"{short_id}.json", "w") as json_file:
+    with open(paper_dir / "metadata.json", "w") as json_file:
         json.dump(metadata, json_file, indent=4)
 
 def download_arxiv(output_dir: Path, max_results:int=1000) -> int:
@@ -35,16 +34,13 @@ def download_arxiv(output_dir: Path, max_results:int=1000) -> int:
 
     # Make sure the destination directory exists or create it
     output_dir.mkdir(parents=True, exist_ok=True)
-    # For metadata too
-    metadata_path = Path(output_dir / "metadata")
-    metadata_path.mkdir(parents=True, exist_ok=True)
 
     # Construct the default API client.
     client = arxiv.Client()
 
     # Search files on ArXiv
     search = arxiv.Search(
-        query="(cat:cs.AI OR cat:cs.CL) AND LLM AND NOT Poster",
+        query="(cat:cs.AI OR cat:cs.CL) AND LLM ANDNOT (Poster OR Survey)",
         max_results=max_results,
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
@@ -56,10 +52,13 @@ def download_arxiv(output_dir: Path, max_results:int=1000) -> int:
     for paper in tqdm(results, desc="Downloading papers"):
         short_id = format_name(paper.get_short_id())
         try:
-            urlretrieve(paper.pdf_url, output_dir / f"{short_id}.pdf")
-            save_metadata(metadata_path, short_id, paper)
+            paper_dir = Path(output_dir / short_id)
+            paper_dir.mkdir(parents=True, exist_ok=True)
+            urlretrieve(paper.pdf_url, paper_dir / "paper.pdf")
+            save_metadata(paper_dir, paper)
             successes += 1
         except error.HTTPError as e:
+            rmtree(paper_dir)
             print(f"HTTP error: {e}")
     
     print(f"Downloaded {successes} papers.")
